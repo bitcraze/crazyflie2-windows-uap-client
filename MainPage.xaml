@@ -7,22 +7,37 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel>
-            <Button Content="Connect" Click="onConnectClick"></Button>
-            <Button Content="Disconnect" Click="onDisconnectClick"></Button>
-            <TextBlock x:Name="debugOutput" Text="Output"></TextBlock>
-            <StackPanel Orientation="Horizontal" Margin="50">
-                <Grid x:Name="controlBoxLeft" BorderThickness="1" BorderBrush="Black" Height="150" Width="150">
-                    <Ellipse x:Name="controlStickLeft" Width="50" Height="50" Fill="Black"></Ellipse>
-                </Grid>
-                <Grid Width="100"></Grid>
-                <Grid x:Name="controlBoxRight" BorderThickness="1" BorderBrush="Black" Height="150" Width="150">
-                    <Ellipse x:Name="controlStickRight" Width="50" Height="50" Fill="Black"></Ellipse>
-                </Grid>
-            </StackPanel>
-
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="0,10,0,30">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel 
+            Orientation="Vertical"
+            Grid.Column="0"
+            Grid.ColumnSpan="3"
+            HorizontalAlignment="Center">
+            <Button 
+                x:Name="connectionButton" 
+                Content="Connect"
+                HorizontalAlignment="Center"
+                Click="onClick"></Button>
+            <TextBox
+                x:Name="infoText"
+                BorderThickness="0"
+                HorizontalAlignment="Center"></TextBox>
         </StackPanel>
-        
+          
+            <local:Joystick 
+                x:Name="leftStick" 
+                VerticalAlignment="Bottom"
+                FullRangeY="True"
+                Grid.Column="0"></local:Joystick>
+            <local:Joystick 
+                x:Name="rightStick" 
+                VerticalAlignment="Bottom"
+                Grid.Column="2"></local:Joystick>
+
     </Grid>
 </Page>
