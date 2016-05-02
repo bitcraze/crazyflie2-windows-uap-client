@@ -15,4 +15,4 @@ You should set your Windows device in developper mode in order to be able to lau
 The option can be found in the settings.
 
 On Windows the Crazyflie should be paired to Windows to be able to connect to it.
-For that you need to build and flash a special version of the Crazyflie 2 NRF firmware from the [nrf_pairing](https://github.com/theseankelly/crazyflie2-nrf-firmware/tree/nrf_pairing) branch.
+For that you need to build and flash the latest development version of the [Crazyflie 2 NRF firmware](https://github.com/bitcraze/crazyflie2-nrf-firmware) master branch.
