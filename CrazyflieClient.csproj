@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="BthCrtp.cs" />
     <Compile Include="CrazyflieController.cs" />
+    <Compile Include="GestureController.cs" />
     <Compile Include="FlightController.cs" />
     <Compile Include="IFlightController.cs" />
     <Compile Include="Joystick.xaml.cs">
