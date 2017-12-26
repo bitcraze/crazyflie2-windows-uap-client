@@ -78,9 +78,17 @@ namespace CrazyflieClient
         {
             FlightControlAxes axes;
             axes.roll = lastNavigationOffset.X;
-            axes.pitch = -1 * lastNavigationOffset.Z; // Z is inverted 
+            axes.pitch = lastNavigationOffset.Z; // Z is inverted 
             axes.yaw = 0; // No yaw support
-            axes.thrust = lastNavigationOffset.Y;
+            if(lastNavigationOffset.Y >= 0)
+            {
+                axes.thrust = lastNavigationOffset.Y;
+            }
+            else
+            {
+                axes.thrust = 0;
+            }
+
             return axes;
         }
     }
