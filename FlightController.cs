@@ -35,6 +35,7 @@ namespace CrazyflieClient
             axes.pitch = rightStickPos.Y;
             axes.yaw = leftStickPos.X;
             axes.thrust = leftStickPos.Y;
+            axes.armed = true;
             return axes;
         }
     }

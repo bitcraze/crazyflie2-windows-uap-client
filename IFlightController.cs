@@ -30,6 +30,9 @@ namespace CrazyflieClient
         // percentage in the range of (0,1) 
         // where 0 is no thrust and 1 is full thrust
         public double thrust;
+
+        // Whether or not to consider the crazyflie armed
+        public bool armed;
     }
 
     interface IFlightController

@@ -18,6 +18,8 @@ namespace CrazyflieClient
         private SpatialGestureRecognizer gestureRecognizer;
 
         private Vector3 lastNavigationOffset;
+
+        private bool armed = false;
   
         public GestureController()
         {
@@ -51,6 +53,7 @@ namespace CrazyflieClient
             lastNavigationOffset.X = 0;
             lastNavigationOffset.Y = 0;
             lastNavigationOffset.Z = 0;
+            armed = false;
         }
 
         private void OnNavigationCanceled(object sender, SpatialNavigationCanceledEventArgs e)
@@ -58,6 +61,7 @@ namespace CrazyflieClient
             lastNavigationOffset.X = 0;
             lastNavigationOffset.Y = 0;
             lastNavigationOffset.Z = 0;
+            armed = false;
         }
 
         private void OnNavigationUpdated(object sender, SpatialNavigationUpdatedEventArgs e)
@@ -69,6 +73,7 @@ namespace CrazyflieClient
         private void OnTapped(object sender, SpatialTappedEventArgs e)
         {
             Debug.WriteLine("onTapped");
+            armed = !armed;
         }
 
         //
@@ -78,7 +83,7 @@ namespace CrazyflieClient
         {
             FlightControlAxes axes;
             axes.roll = lastNavigationOffset.X;
-            axes.pitch = lastNavigationOffset.Z; // Z is inverted 
+            axes.pitch = -1 * lastNavigationOffset.Z; // Z is inverted 
             axes.yaw = 0; // No yaw support
             if(lastNavigationOffset.Y >= 0)
             {
@@ -88,6 +93,8 @@ namespace CrazyflieClient
             {
                 axes.thrust = 0;
             }
+
+            axes.armed = armed;
 
             return axes;
         }
