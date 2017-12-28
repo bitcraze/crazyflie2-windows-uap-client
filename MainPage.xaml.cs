@@ -10,7 +10,7 @@ namespace CrazyflieClient
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private FlightController flightController;
+        private IFlightController flightController;
         private CrazyflieController crazyflieController;
 
         private bool isCrazyfliePaired;
@@ -20,7 +20,8 @@ namespace CrazyflieClient
         {
             this.InitializeComponent();
 
-            flightController = new FlightController(leftStick, rightStick);
+            //flightController = new FlightController(leftStick, rightStick);
+            flightController = new GestureController();
             crazyflieController = new CrazyflieController(flightController);    
         }
 
