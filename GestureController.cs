@@ -1,10 +1,8 @@
 ﻿using System.Numerics;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using Windows.UI.Input.Spatial;
-
+using Windows.Perception.Spatial;
 using System.Diagnostics;
-
 
 namespace CrazyflieClient
 {
@@ -14,66 +12,120 @@ namespace CrazyflieClient
     //      This implementation uses Spatial Input APIs to consume hand gestures (HoloLens)
     class GestureController : IFlightController
     {
+        //
+        // Summary:
+        //      Objects for spatial interaction and localization
         private SpatialInteractionManager interactionManager;
         private SpatialGestureRecognizer gestureRecognizer;
+        private SpatialLocator spatialLocator;
+        private SpatialStationaryFrameOfReference stationaryFrameOfReference;
 
-        private Vector3 lastNavigationOffset;
+        //
+        // Summary:
+        //      Variable for storing the last observed gesture position offset
+        private Vector3 lastGestureOffset;
+        
+        //
+        // Summary:
+        //      Scaling factor for gesture ranges (in meters)
+        //      Gesture offsets are divided by this scalar to map a (-1,1) range to
+        //      (-gestureRangeScale, gestureRangeScale)
+        private const float gestureRangeScale = 0.25f;
 
-        private bool armed = false;
+        //
+        // Summary:
+        //      Boolean to keep track of arming state
+        private bool isArmed = false;
+
+        // 
+        // Summary:
+        //      Boolean to keep track of whether self leveling is on or off
+        //      (Currently always on)
+        private const bool isSelfLevelEnabled = true;
   
         public GestureController()
         {
+            spatialLocator = SpatialLocator.GetDefault();
+
             gestureRecognizer = new SpatialGestureRecognizer(
-                SpatialGestureSettings.Tap | 
-                SpatialGestureSettings.NavigationX |
-                SpatialGestureSettings.NavigationY |
-                SpatialGestureSettings.NavigationZ);
-            gestureRecognizer.NavigationStarted += OnNavigationStarted;
-            gestureRecognizer.NavigationCompleted += OnNavigationCompleted;
-            gestureRecognizer.NavigationCanceled += OnNavigationCanceled;
-            gestureRecognizer.NavigationUpdated += OnNavigationUpdated;
+                SpatialGestureSettings.Tap |
+                SpatialGestureSettings.ManipulationTranslate);
+
+            gestureRecognizer.ManipulationCanceled += OnManipulationCanceled;
+            gestureRecognizer.ManipulationCompleted += OnManipulationCompleted;
+            gestureRecognizer.ManipulationStarted += OnManipulationStarted;
+            gestureRecognizer.ManipulationUpdated += OnManipulationUpdated;
             gestureRecognizer.Tapped += OnTapped;
 
             interactionManager = SpatialInteractionManager.GetForCurrentView();
             interactionManager.InteractionDetected += OnInteractionDetected;
         }
 
+        // Summary:
+        //      Helper to clear the state of the setpoints and tell the copter to disarm
+        private void ClearSetpointsAndDisarm()
+        {
+            lastGestureOffset.X = 0;
+            lastGestureOffset.Y = 0;
+            lastGestureOffset.Z = 0;
+            isArmed = false;
+        }
+        
+        // Summary:
+        //      Handler for interaction detection. Forwards interaction to the gesture recognizer.
         private void OnInteractionDetected(object sender, SpatialInteractionDetectedEventArgs e)
         {
             gestureRecognizer.CaptureInteraction(e.Interaction);
         }
 
-        private void OnNavigationStarted(object sender, SpatialNavigationStartedEventArgs e)
+        // Summary:
+        //      Handler for manipulation started events. Obtains the stationary frame of reference for the gesture.
+        private void OnManipulationStarted(object sender, SpatialManipulationStartedEventArgs e)
         {
-            Debug.WriteLine("Navigation Started!");
+            // Manipulation has started - obtain the frame of reference relative to when the gesture began
+            stationaryFrameOfReference = spatialLocator.CreateStationaryFrameOfReferenceAtCurrentLocation();
         }
 
-        private void OnNavigationCompleted(object sender, SpatialNavigationCompletedEventArgs e)
+        // Summary:
+        //      Handler for manipulation completed events. Clears setpoints and disarms.
+        private void OnManipulationCompleted(object sender, SpatialManipulationCompletedEventArgs e)
         {
-            lastNavigationOffset.X = 0;
-            lastNavigationOffset.Y = 0;
-            lastNavigationOffset.Z = 0;
-            armed = false;
+            ClearSetpointsAndDisarm();
         }
 
-        private void OnNavigationCanceled(object sender, SpatialNavigationCanceledEventArgs e)
+        // Summary:
+        //      Handler for manipulation canceled events. Clears setpoints and disarms.
+        private void OnManipulationCanceled(object sender, SpatialManipulationCanceledEventArgs e)
         {
-            lastNavigationOffset.X = 0;
-            lastNavigationOffset.Y = 0;
-            lastNavigationOffset.Z = 0;
-            armed = false;
+            ClearSetpointsAndDisarm();
         }
 
-        private void OnNavigationUpdated(object sender, SpatialNavigationUpdatedEventArgs e)
+        // Summary:
+        //      Handler for manipulation updated events. Stores relative offsets for later processing.
+        private void OnManipulationUpdated(object sender, SpatialManipulationUpdatedEventArgs e)
         {
-            lastNavigationOffset = e.NormalizedOffset;
-            Debug.WriteLine(lastNavigationOffset.ToString()); 
+            // Get the manipulation delta relative to the frame of reference from when the manipulation began
+            // Using a stationary frame of reference prevents movements of the device from affecting the gesture offset
+            SpatialManipulationDelta manipulationDelta = 
+                e.TryGetCumulativeDelta(stationaryFrameOfReference.CoordinateSystem);
+
+            // Store the offset
+            lastGestureOffset = manipulationDelta.Translation;
         }
 
+        // Summary:
+        //      Handler for the Tap gesture
+        //      Used to toggle the state of isArmed
         private void OnTapped(object sender, SpatialTappedEventArgs e)
         {
-            Debug.WriteLine("onTapped");
-            armed = !armed;
+            isArmed = !isArmed;
+        }
+
+        // Summary:
+        //      Helper for clamping a value to a specified min and max
+        private float Clamp(float value, float min, float max)
+        {
+            return (value < min) ? min : ((value > max) ? max : value);
         }
 
         //
@@ -82,19 +134,14 @@ namespace CrazyflieClient
         public async Task<FlightControlAxes> GetFlightControlAxes()
         {
             FlightControlAxes axes;
-            axes.roll = lastNavigationOffset.X;
-            axes.pitch = -1 * lastNavigationOffset.Z; // Z is inverted 
-            axes.yaw = 0; // No yaw support
-            if(lastNavigationOffset.Y >= 0)
-            {
-                axes.thrust = lastNavigationOffset.Y;
-            }
-            else
-            {
-                axes.thrust = 0;
-            }
 
-            axes.armed = armed;
+            // Populate axes and clamp to (-1,1) for RPY and (0,1) for T
+            axes.roll = Clamp(lastGestureOffset.X / gestureRangeScale, -1, 1);
+            axes.pitch = -1 * Clamp(lastGestureOffset.Z / gestureRangeScale, -1, 1); // Z is inverted
+            axes.yaw = 0; // No yaw support
+            axes.thrust = Clamp(lastGestureOffset.Y / gestureRangeScale, 0, 1);
+            axes.isSelfLevelEnabled = isSelfLevelEnabled;
+            axes.isArmed = isArmed;
 
             return axes;
         }
