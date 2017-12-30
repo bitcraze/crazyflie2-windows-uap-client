@@ -100,11 +100,19 @@ namespace CrazyflieClient
             while(!cancellationToken.IsCancellationRequested)
             {
                 FlightControlAxes axes = await flightController.GetFlightControlAxes();
-                await bthCrtp.WriteCommanderPacket(
-                    (float)(axes.roll * maxPitchRollRate),
-                    (float)(axes.pitch * maxPitchRollRate),
-                    (float)(axes.yaw * maxYawRate),
-                    (ushort)(axes.thrust * maxThrustPercent * MaxThrust));
+                //await bthCrtp.WriteCommanderPacket(
+                //    (float)(axes.roll * maxPitchRollRate),
+                //    (float)(axes.pitch * maxPitchRollRate),
+                //    (float)(axes.yaw * maxYawRate),
+                //    (ushort)(axes.thrust * maxThrustPercent * MaxThrust));
+
+                await bthCrtp.WriteCppmCommanderPacket(
+                    (ushort)((axes.roll * 500) + 1500),
+                    (ushort)((axes.pitch * 500) + 1500),
+                    (ushort)((axes.yaw * 500) + 1500),
+                    (ushort)((axes.thrust * 1000 * maxThrustPercent) + 1000),
+                    (ushort)(axes.isSelfLevelEnabled ? 2000 : 1000),
+                    (ushort)(axes.isArmed ? 2000 : 1000));
             }
         }
     }
