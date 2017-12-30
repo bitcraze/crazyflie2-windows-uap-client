@@ -39,7 +39,8 @@ namespace CrazyflieClient
             public ushort pitch;
             public ushort yaw;
             public ushort thrust;
-            public ushort armed;
+            public ushort isSelfLevelEnabled;
+            public ushort isArmed;
         }
 
         // This is the GUID for the CRTP GATT service
@@ -175,7 +176,8 @@ namespace CrazyflieClient
             ushort pitch,
             ushort yaw,
             ushort thrust,
-            ushort armed)
+            ushort isSelfLevelEnabled,
+            ushort isArmed)
         {
             CrtpCommanderCppmPacket packet;
 
@@ -183,12 +185,13 @@ namespace CrazyflieClient
             // (Port 7, link 0, chan 0)
             packet.header = 0x70;
             packet.type = 0x03; // Type 0x03 is CPPM
-            packet.numAuxChannels = 1; // 1 aux channel (the 'armed' channel)
+            packet.numAuxChannels = 2; // 2 aux channels (selfLevel and armed)
             packet.roll = roll;
             packet.pitch = pitch;
             packet.yaw = yaw;
             packet.thrust = thrust;
-            packet.armed = armed;
+            packet.isSelfLevelEnabled = isSelfLevelEnabled;
+            packet.isArmed = isArmed;
 
             // Marshal the structure into a byte array
             int size = Marshal.SizeOf(packet);

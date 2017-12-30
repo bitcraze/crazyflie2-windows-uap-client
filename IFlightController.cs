@@ -31,8 +31,11 @@ namespace CrazyflieClient
         // where 0 is no thrust and 1 is full thrust
         public double thrust;
 
+        // Whether or not self leveling should be enabled
+        public bool isSelfLevelEnabled;
+
         // Whether or not to consider the crazyflie armed
-        public bool armed;
+        public bool isArmed;
     }
 
     interface IFlightController
