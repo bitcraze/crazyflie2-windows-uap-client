@@ -1,8 +1,9 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Diagnostics;
+using System.Numerics;
 using System.Threading.Tasks;
 using Windows.UI.Input.Spatial;
 using Windows.Perception.Spatial;
-using System.Diagnostics;
 
 namespace CrazyflieClient
 {
@@ -106,11 +107,19 @@ namespace CrazyflieClient
         {
             // Get the manipulation delta relative to the frame of reference from when the manipulation began
             // Using a stationary frame of reference prevents movements of the device from affecting the gesture offset
-            SpatialManipulationDelta manipulationDelta = 
-                e.TryGetCumulativeDelta(stationaryFrameOfReference.CoordinateSystem);
+            try
+            {
+                SpatialManipulationDelta manipulationDelta =
+                    e.TryGetCumulativeDelta(stationaryFrameOfReference.CoordinateSystem);
 
-            // Store the offset
-            lastGestureOffset = manipulationDelta.Translation;
+                // Store the offset
+                lastGestureOffset = manipulationDelta.Translation;
+            }
+            catch
+            {
+                // If TryGetCumulativeDelta throws an exception, clear and disarm
+                ClearSetpointsAndDisarm();
+            }
         }
 
         // Summary:
