@@ -29,6 +29,9 @@ namespace CrazyflieClient
             public ushort thrust;
         };
 
+        // Summary:
+        //      Structure for sending emulated CPPM on the generic
+        //      commander port. This must be byte packed.
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct CrtpCommanderCppmPacket
         {
