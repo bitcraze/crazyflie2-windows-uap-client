@@ -142,17 +142,18 @@ namespace CrazyflieClient
         //
         public async Task<FlightControlAxes> GetFlightControlAxes()
         {
-            FlightControlAxes axes;
-
-            // Populate axes and clamp to (-1,1) for RPY and (0,1) for T
-            axes.roll = Clamp(lastGestureOffset.X / gestureRangeScale, -1, 1);
-            axes.pitch = -1 * Clamp(lastGestureOffset.Z / gestureRangeScale, -1, 1); // Z is inverted
-            axes.yaw = 0; // No yaw support
-            axes.thrust = Clamp(lastGestureOffset.Y / gestureRangeScale, 0, 1);
-            axes.isSelfLevelEnabled = isSelfLevelEnabled;
-            axes.isArmed = isArmed;
-
-            return axes;
+            return await Task.Run(() =>
+            {
+                FlightControlAxes axes;
+                // Populate axes and clamp to (-1,1) for RPY and (0,1) for T
+                axes.roll = Clamp(lastGestureOffset.X / gestureRangeScale, -1, 1);
+                axes.pitch = -1 * Clamp(lastGestureOffset.Z / gestureRangeScale, -1, 1); // Z is inverted
+                axes.yaw = 0; // No yaw support
+                axes.thrust = Clamp(lastGestureOffset.Y / gestureRangeScale, 0, 1);
+                axes.isSelfLevelEnabled = isSelfLevelEnabled;
+                axes.isArmed = isArmed;
+                return axes;
+            });
         }
     }
 }
