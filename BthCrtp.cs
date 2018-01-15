@@ -20,7 +20,7 @@ namespace CrazyflieClient
         //      This will be sent OTA and must be byte packed
         //      https://wiki.bitcraze.io/projects:crazyflie:crtp:commander
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct CrtpControlPacket
+        public struct CrtpCommanderPacket
         {
             public byte header;
             public float roll;
@@ -136,7 +136,7 @@ namespace CrazyflieClient
             float yaw,
             ushort thrust)
         {
-            CrtpControlPacket packet;
+            CrtpCommanderPacket packet;
 
             // Header is always 0x30 for commander packets
             // (Port 3, link 0, chan 0)
