@@ -20,8 +20,15 @@ namespace CrazyflieClient
         {
             this.InitializeComponent();
 
-            //flightController = new FlightController(leftStick, rightStick);
-            flightController = new GestureController();
+            // TODO: select the input controller - eventually this should
+            // be configurable at runtime through a settings page, or be 
+            // automatically detected.
+            //
+            // For touchscreen control, use the FlightController class (default)
+            flightController = new FlightController(leftStick, rightStick);
+            // For spatial gesture control (HoloLens), use the GestureController class
+            //flightController = new GestureController();
+
             crazyflieController = new CrazyflieController(flightController);    
         }
 
