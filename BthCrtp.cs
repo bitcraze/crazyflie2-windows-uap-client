@@ -20,7 +20,7 @@ namespace CrazyflieClient
         //      This will be sent OTA and must be byte packed
         //      https://wiki.bitcraze.io/projects:crazyflie:crtp:commander
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct CrtpControlPacket
+        public struct CrtpCommanderPacket
         {
             public byte header;
             public float roll;
@@ -28,6 +28,23 @@ namespace CrazyflieClient
             public float yaw;
             public ushort thrust;
         };
+
+        // Summary:
+        //      Structure for sending emulated CPPM on the generic
+        //      commander port. This must be byte packed.
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct CrtpCommanderCppmPacket
+        {
+            public byte header;
+            public byte type;
+            public byte numAuxChannels;
+            public ushort roll;
+            public ushort pitch;
+            public ushort yaw;
+            public ushort thrust;
+            public ushort isSelfLevelEnabled;
+            public ushort isArmed;
+        }
 
         // This is the GUID for the CRTP GATT service
         private static Guid crtpServiceGuid =
@@ -119,7 +136,7 @@ namespace CrazyflieClient
             float yaw,
             ushort thrust)
         {
-            CrtpControlPacket packet;
+            CrtpCommanderPacket packet;
 
             // Header is always 0x30 for commander packets
             // (Port 3, link 0, chan 0)
@@ -128,6 +145,56 @@ namespace CrazyflieClient
             packet.pitch = pitch;
             packet.yaw = yaw;
             packet.thrust = thrust;
+
+            // Marshal the structure into a byte array
+            int size = Marshal.SizeOf(packet);
+            byte[] arr = new byte[size];
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(packet, ptr, true);
+            Marshal.Copy(ptr, arr, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            
+            // Write the packet to the GATT characteristic
+            // Can use the basic characteristic since the payload is always less than 20
+            GattCommunicationStatus status = await crtpChar.WriteValueAsync(
+                        arr.AsBuffer(),
+                        GattWriteOption.WriteWithResponse);
+
+            if (GattCommunicationStatus.Unreachable == status)
+            {
+                // TODO: error reporting
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+        
+        // 
+        // Summary:
+        //      Writes a CPPM commander packet (roll, pitch, yaw, thrust, armed) OTA via BLE
+        public async Task WriteCppmCommanderPacket(
+            ushort roll,
+            ushort pitch,
+            ushort yaw,
+            ushort thrust,
+            ushort isSelfLevelEnabled,
+            ushort isArmed)
+        {
+            CrtpCommanderCppmPacket packet;
+
+            // Header is always 0x70 for generic commander packets
+            // (Port 7, link 0, chan 0)
+            packet.header = 0x70;
+            packet.type = 0x03; // Type 0x03 is CPPM
+            packet.numAuxChannels = 2; // 2 aux channels (selfLevel and armed)
+            packet.roll = roll;
+            packet.pitch = pitch;
+            packet.yaw = yaw;
+            packet.thrust = thrust;
+            packet.isSelfLevelEnabled = isSelfLevelEnabled;
+            packet.isArmed = isArmed;
 
             // Marshal the structure into a byte array
             int size = Marshal.SizeOf(packet);
