@@ -23,3 +23,7 @@ This app has the ability to support controlling the Crazyflie with hand gestures
 See MainPage.xaml.cs line 23-30: Comment line 28 which creates a FlightController object and uncomment line 30 which creates a GestureController object.
 
 To fly with hand gestures, use the manipulation gesture (tap and hold followed by movement, such as when moving a hologram around in space). Hand movements up and down along the vertical axis control thrust. Movements side to side control roll. Movements forward and backward control pitch.
+
+## Contribute
+Go to the [contribute page](https://www.bitcraze.io/contribute/) on our website to learn more.
+
